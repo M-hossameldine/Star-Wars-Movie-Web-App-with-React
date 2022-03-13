@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+
 import MovieList from './components/Movies/MovieList/MovieList';
+import AddMovie from './components/Movies/AddMovie/AddMovie';
+
 import './App.css';
 
 const App = () => {
@@ -7,7 +10,7 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  async function fetchMoviesHandler() {
+  const fetchMoviesHandler = useCallback(async () => {
     setIsLoading(true);
 
     try {
@@ -15,24 +18,32 @@ const App = () => {
       if (!response.ok) {
         throw new Error('Something went wrong!');
       }
-
       const data = await response.json();
 
-      const transformedData = data.results.map((movie) => {
+      const transformedMovies = data.results.map((movie) => {
         return {
-          id: movie.epoisode_id,
+          id: movie.episode_id,
           title: movie.title,
           openingText: movie.opening_crawl,
           releaseDate: movie.release_date,
         };
       });
-
-      setMovies(transformedData);
+      console.log(data.results);
+      setMovies(transformedMovies);
     } catch (error) {
-      setError(error.message);
+      setError(error);
     }
+
     setIsLoading(false);
-  }
+  }, []);
+
+  useEffect(() => {
+    fetchMoviesHandler();
+  }, [fetchMoviesHandler]);
+
+  const addMovieHandler = (movie) => {
+    console.log(movie);
+  };
 
   let content = <p> Found no movies! </p>;
   if (isLoading) {
@@ -49,6 +60,9 @@ const App = () => {
 
   return (
     <>
+      <section>
+        <AddMovie onAddMovie={addMovieHandler} />
+      </section>
       <section>
         <button onClick={fetchMoviesHandler}> Fetch Movies </button>
       </section>
